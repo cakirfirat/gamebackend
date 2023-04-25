@@ -19,7 +19,7 @@ jobs:
         host: ${{ secrets.SSH_HOST }}
         password: ${{ secrets.SSH_PASSWORD }}
         script: |
-          cd /home/user/gamebackend
+          cd /gamebackend/gamebackend
           git pull
           docker-compose down
           docker-compose up -d
