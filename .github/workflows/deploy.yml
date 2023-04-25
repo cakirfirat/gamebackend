@@ -21,7 +21,7 @@ jobs:
         script: |
           cd gamebackend/gamebackend
           git pull
-          docker stop gamebackend || true
-          docker rm gamebackend || true
-          docker run -p 8096:8096 --name gamebackend -d
-
+          docker build -t gamebackend .
+          docker stop gamebackend-container
+          docker rm gamebackend-container
+          docker run -d -p 8096:8096 --name gamebackend-container gamebackend
