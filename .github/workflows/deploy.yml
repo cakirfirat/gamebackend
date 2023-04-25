@@ -21,5 +21,7 @@ jobs:
         script: |
           cd gamebackend/gamebackend
           git pull
-          docker-compose down
-          docker-compose up -p 8096:8096
+          docker stop gamebackend || true
+          docker rm gamebackend || true
+          docker run -p 8096:8096 --name gamebackend -d
+
