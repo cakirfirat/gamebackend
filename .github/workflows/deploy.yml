@@ -21,7 +21,8 @@ jobs:
         script: |
           cd gamebackend/gamebackend
           git pull
-          docker build -t gamebackend .
           docker stop gamebackend-container
           docker rm gamebackend-container
+          docker rmi gamebackend -f # Eski imajı sil
+          docker build -t gamebackend . --rm # Yeni imajı oluştur ve intermediate containerları sil
           docker run -d -p 8096:8096 --name gamebackend-container gamebackend

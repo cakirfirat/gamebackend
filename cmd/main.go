@@ -14,7 +14,7 @@ func main() {
 	log.Println("Server starting...")
 
 	r := mux.NewRouter()
-	r.HandleFunc("/api/testregister", RegisterHandler).Methods("POST")
+	r.HandleFunc("/api/genesis", Genesis).Methods("POST")
 	server := &http.Server{
 		Addr:    ":8096",
 		Handler: r,
