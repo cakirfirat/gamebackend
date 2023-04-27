@@ -11,7 +11,6 @@ import (
 	"math/rand"
 	"mime/multipart"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -41,11 +40,11 @@ func SendSms(phoneno, message string) {
 
 	payload := &bytes.Buffer{}
 	writer := multipart.NewWriter(payload)
-	_ = writer.WriteField("usercode", os.Getenv("USERNAME"))
-	_ = writer.WriteField("password", os.Getenv("PASSWORD"))
+	_ = writer.WriteField("usercode", "8503051043")
+	_ = writer.WriteField("password", "Oo_110308020")
 	_ = writer.WriteField("gsmno", phoneno)
 	_ = writer.WriteField("message", message)
-	_ = writer.WriteField("msgheader", os.Getenv("USERNAME"))
+	_ = writer.WriteField("msgheader", "8503051043")
 	err := writer.Close()
 	CheckError(err)
 
