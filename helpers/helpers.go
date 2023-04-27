@@ -1,10 +1,12 @@
 package helpers
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"log"
 	"math/rand"
 	"mime/multipart"
@@ -59,12 +61,19 @@ func SendSms(phoneno, message string) {
 	req.Header.Set("Content-Type", writer.FormDataContentType())
 
 	res, err := client.Do(req)
-
 	CheckError(err)
-
 	defer res.Body.Close()
 
-	CheckError(err)
+	// read response body
+	scanner := bufio.NewScanner(res.Body)
+	var response []byte
+	for scanner.Scan() {
+		response = append(response, scanner.Bytes()...)
+	}
+
+	// print response body
+	fmt.Println(string(response))
+
 }
 
 var SECRET = []byte("super-secret-auth")
