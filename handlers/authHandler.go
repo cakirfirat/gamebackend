@@ -74,7 +74,7 @@ func VerifyCode(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Telefon numarası eksik"))
 		return
 	}
-	if code, ok := jsonData["code"].(string); ok {
+	if code, ok := jsonData["Code"].(string); ok {
 		user.VerifyCode = code
 	} else {
 		// PhoneNumber alanı yoksa veya türü string değilse hata döndür
