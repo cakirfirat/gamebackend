@@ -5,6 +5,7 @@ import (
 	"fmt"
 	. "gamebackend/helpers"
 	"log"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -30,6 +31,7 @@ func init() {
 }
 
 type User struct {
+	Id                 string    `json:"Id"`
 	Name               string    `json:"Name"`
 	MiddleName         string    `json:"MiddleName"`
 	LastName           string    `json:"LastName"`
@@ -41,6 +43,8 @@ type User struct {
 	NationalId         string    `json:"NationalId"`
 	PassportId         string    `json:"PassportId"`
 	Nationality        string    `json:"Nationality"`
+	VerifyCode         string    `json:"VerifyCode"`
+	IsVerify           bool      `json:"IsVerify"`
 	IsIdentityApproved bool      `json:"IsIdentityApproved"`
 	IsEmailApproved    bool      `json:"IsEmailApproved"`
 	IsTfaActive        bool      `json:"IsTfaActive"`
@@ -55,17 +59,17 @@ type User struct {
 
 func InsertUser(user User) bool {
 	sqlQuery := `
-        INSERT INTO users (
-            Name, MiddleName, LastName, Email, PhoneNumber, 
-            Password, BirthDate, NationalId, PassportId, Nationality, 
+        INSERT INTO user (
+            Id, Name, MiddleName, LastName, Email, PhoneNumber,
+            Password, BirthDate, Gender, NationalId, PassportId, Nationality, VerifyCode, IsVerify,
             IsIdentityApproved, IsEmailApproved, IsTfaActive, IsPatient, IsDeleted,
-			PhotoUrl, IsDoctor, IsMainUser, CreatedAt, UpdatedAt
-        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,)
+            PhotoUrl, IsDoctor, IsMainUser, CreatedAt, UpdatedAt
+        ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
     `
 
 	result, err := db.Exec(sqlQuery,
-		user.Name, user.MiddleName, user.LastName, user.Email, user.PhoneNumber,
-		user.Password, user.BirthDate, user.NationalId, user.PassportId, user.Nationality,
+		user.Id, user.Name, user.MiddleName, user.LastName, user.Email, user.PhoneNumber,
+		user.Password, user.BirthDate, user.Gender, user.NationalId, user.PassportId, user.Nationality, user.VerifyCode, user.IsVerify,
 		user.IsIdentityApproved, user.IsEmailApproved, user.IsTfaActive, user.IsPatient, user.IsDeleted,
 		user.PhotoUrl, user.IsDoctor, user.IsMainUser, user.CreatedAt, user.UpdatedAt,
 	)
@@ -81,4 +85,58 @@ func InsertUser(user User) bool {
 		return false
 	}
 
+}
+
+func CheckPhoneNumber(phoneNumber string) bool {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM user WHERE PhoneNumber LIKE CONCAT('%', ?, '%')", phoneNumber).Scan(&count)
+	if err != nil {
+		CheckError(err)
+	}
+	if count > 0 {
+		return false
+	} else {
+		return true
+	}
+
+}
+func CheckVerifyCode(phoneNumber, verifyCode string) bool {
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM user WHERE PhoneNumber AND VerifyCode", phoneNumber, verifyCode).Scan(&count)
+	if err != nil {
+		CheckError(err)
+	}
+	if count > 0 {
+		return false
+	} else {
+		return true
+	}
+
+}
+
+func UpdateUserFromPhone(PhoneNumber string, updateFields map[string]interface{}) bool {
+	sqlQuery := "UPDATE user SET "
+	values := make([]interface{}, 0)
+
+	for key, val := range updateFields {
+		sqlQuery += key + "=?,"
+		values = append(values, val)
+	}
+	sqlQuery = strings.TrimSuffix(sqlQuery, ",") // remove the last comma
+	sqlQuery += " WHERE PhoneNumber = ?"
+	values = append(values, PhoneNumber)
+
+	result, err := db.Exec(sqlQuery, values...)
+	if err != nil {
+		CheckError(err)
+		return false
+	}
+
+	rowsAffected, _ := result.RowsAffected()
+
+	if rowsAffected > 0 {
+		return true
+	} else {
+		return false
+	}
 }

@@ -15,6 +15,7 @@ func main() {
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/genesis", Genesis).Methods("POST")
+	r.HandleFunc("/api/verify-code", VerifyCode).Methods("POST")
 	server := &http.Server{
 		Addr:    ":8096",
 		Handler: r,
