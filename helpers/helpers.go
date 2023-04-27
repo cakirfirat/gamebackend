@@ -131,7 +131,7 @@ func Localizate(lang, text string) string {
 
 	switch lang {
 	case "tr-tr":
-		bundle.LoadMessageFile("../helpers/lang/tr-TR.json")
+		bundle.LoadMessageFile("lang/tr-TR.json")
 	case "en-en":
 		bundle.LoadMessageFile("../helpers/lang/en-EN.json")
 	default:
