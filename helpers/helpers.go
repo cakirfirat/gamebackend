@@ -12,6 +12,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt"
@@ -95,22 +96,29 @@ func CreateJwt() (string, error) {
 
 func ValidateJwt(next func(w http.ResponseWriter, r *http.Request)) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header["Token"] != nil {
-			token, err := jwt.Parse(r.Header["Token"][0], func(t *jwt.Token) (interface{}, error) {
-				_, ok := t.Method.(*jwt.SigningMethodHMAC)
-				if !ok {
+		authHeader := r.Header.Get("Authorization")
+		if authHeader != "" {
+			bearerToken := strings.Split(authHeader, " ")
+			if len(bearerToken) == 2 && strings.EqualFold(bearerToken[0], "Bearer") {
+				token, err := jwt.Parse(bearerToken[1], func(t *jwt.Token) (interface{}, error) {
+					_, ok := t.Method.(*jwt.SigningMethodHMAC)
+					if !ok {
+						w.WriteHeader(http.StatusUnauthorized)
+						w.Write([]byte("Not authorized"))
+					}
+					return SECRET, nil
+				})
+				if err != nil {
 					w.WriteHeader(http.StatusUnauthorized)
 					w.Write([]byte("Not authorized"))
 				}
-				return SECRET, nil
-			})
-			if err != nil {
+
+				if token.Valid {
+					next(w, r)
+				}
+			} else {
 				w.WriteHeader(http.StatusUnauthorized)
 				w.Write([]byte("Not authorized"))
-			}
-
-			if token.Valid {
-				next(w, r)
 			}
 		} else {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -149,4 +157,11 @@ func GenerateUUID() (string, error) {
 		return "", err
 	}
 	return newUUID.String(), nil
+}
+
+func GetJSONField(jsonData map[string]interface{}, fieldName string) (string, error) {
+	if value, ok := jsonData[fieldName].(string); ok {
+		return value, nil
+	}
+	return "", fmt.Errorf("%s eksik", fieldName)
 }

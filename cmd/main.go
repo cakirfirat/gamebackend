@@ -2,7 +2,7 @@ package main
 
 import (
 	. "gamebackend/handlers"
-	// . "gamebackend/helpers"
+	. "gamebackend/helpers"
 
 	"log"
 	"net/http"
@@ -14,8 +14,10 @@ func main() {
 	log.Println("Server starting...")
 
 	r := mux.NewRouter()
-	r.HandleFunc("/api/genesis", Genesis).Methods("POST")
-	r.HandleFunc("/api/verify-code", VerifyCode).Methods("POST")
+	r.HandleFunc("/api/genesis", GenesisHandler).Methods("POST")
+	r.HandleFunc("/api/verify-code", VerifyCodeHandler).Methods("POST")
+	r.HandleFunc("/api/user", UserHandler).Methods("POST")
+	r.Handle("/api/patient-user", ValidateJwt(PatientHandler)).Methods("POST")
 	server := &http.Server{
 		Addr:    ":8096",
 		Handler: r,

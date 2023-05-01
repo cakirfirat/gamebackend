@@ -94,9 +94,9 @@ func CheckPhoneNumber(phoneNumber string) bool {
 		CheckError(err)
 	}
 	if count > 0 {
-		return false
-	} else {
 		return true
+	} else {
+		return false
 	}
 
 }

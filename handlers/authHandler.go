@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-func Genesis(w http.ResponseWriter, r *http.Request) {
+func GenesisHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	var jsonData map[string]interface{}
 	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
@@ -17,9 +17,9 @@ func Genesis(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	if phone, ok := jsonData["PhoneNumber"].(string); ok {
+	if phone, ok := jsonData["phoneNumber"].(string); ok {
 
-		if CheckPhoneNumber(phone) {
+		if !CheckPhoneNumber(phone) {
 			user.PhoneNumber = phone
 			otp := CreateOtp()
 			user.VerifyCode = otp
@@ -57,13 +57,13 @@ func Genesis(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func VerifyCode(w http.ResponseWriter, r *http.Request) {
+func VerifyCodeHandler(w http.ResponseWriter, r *http.Request) {
 	var user User
 	var jsonData map[string]interface{}
 	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
 	CheckError(errorDecoder)
 
-	if phone, ok := jsonData["PhoneNumber"].(string); ok {
+	if phone, ok := jsonData["phoneNumber"].(string); ok {
 
 		user.PhoneNumber = phone
 
@@ -74,10 +74,9 @@ func VerifyCode(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Telefon numarası eksik"))
 		return
 	}
-	if code, ok := jsonData["Code"].(string); ok {
+	if code, ok := jsonData["code"].(string); ok {
 		user.VerifyCode = code
 	} else {
-		// PhoneNumber alanı yoksa veya türü string değilse hata döndür
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Doğrulama kodu eksik"))
@@ -107,5 +106,68 @@ func VerifyCode(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Doğrulama kodunuz yanlış"))
 		return
 	}
+
+}
+
+func UserHandler(w http.ResponseWriter, r *http.Request) {
+	// var user User
+	var jsonData map[string]interface{}
+	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
+	CheckError(errorDecoder)
+
+	phoneNumber, err := GetJSONField(jsonData, "phoneNumber")
+	identityNumber, err := GetJSONField(jsonData, "identityNumber")
+	passportNumber, err := GetJSONField(jsonData, "passportNumber")
+	email, err := GetJSONField(jsonData, "email")
+	password, err := GetJSONField(jsonData, "password")
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Bilgiler dolu olmalıdır. "))
+		return
+	}
+
+	updateFields := map[string]interface{}{
+		"PhoneNumber": phoneNumber,
+		"NationalId":  identityNumber,
+		"PassportId":  passportNumber,
+		"Email":       email,
+		"Password":    password,
+	}
+
+	if !CheckPhoneNumber(phoneNumber) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Böyle bir kullanıcı mevcut değil."))
+		return
+	}
+
+	if !UpdateUserFromPhone(phoneNumber, updateFields) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Güncellenirken bir hata oluştu. "))
+		return
+	}
+	token, err := CreateJwt()
+
+	response := map[string]interface{}{
+		"accessToken":  token,
+		"refreshToken": token,
+	}
+	responseJson, err := json.Marshal(response)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write(responseJson)
+	CheckError(err)
+	return
+
+}
+
+func PatientHandler(w http.ResponseWriter, r *http.Request) {
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+	w.Write([]byte("Token başarılı"))
 
 }
