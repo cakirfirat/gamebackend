@@ -87,19 +87,20 @@ func InsertUser(user User) bool {
 
 }
 
-func CheckPhoneNumber(phoneNumber string) bool {
+func CheckPhoneNumber(phoneNumber string) (bool, string) {
+	var id string
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM user WHERE PhoneNumber LIKE CONCAT('%', ?, '%')", phoneNumber).Scan(&count)
+	err := db.QueryRow("SELECT user.Id, COUNT(*) FROM user WHERE PhoneNumber LIKE CONCAT('%', ?, '%') GROUP BY user.Id", phoneNumber).Scan(&id, &count)
 	if err != nil {
 		CheckError(err)
 	}
 	if count > 0 {
-		return true
+		return true, id
 	} else {
-		return false
+		return false, "0"
 	}
-
 }
+
 func CheckVerifyCode(phoneNumber, verifyCode string) bool {
 	var count int
 	err := db.QueryRow("SELECT COUNT(*) FROM user WHERE PhoneNumber AND VerifyCode", phoneNumber, verifyCode).Scan(&count)

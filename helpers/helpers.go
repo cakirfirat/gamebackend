@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -78,20 +79,14 @@ func SendSms(phoneno, message string) {
 
 var SECRET = []byte("super-secret-auth")
 
-func CreateJwt() (string, error) {
-
+func CreateJwt(userId string) (string, error) {
 	token := jwt.New(jwt.SigningMethodHS256)
-
 	claims := token.Claims.(jwt.MapClaims)
-
 	claims["exp"] = time.Now().Add(time.Hour * 730).Unix()
-
+	claims["userId"] = userId
 	tokenStr, err := token.SignedString(SECRET)
-
 	CheckError(err)
-
 	return tokenStr, nil
-
 }
 
 func ValidateJwt(next func(w http.ResponseWriter, r *http.Request)) http.Handler {
@@ -125,6 +120,21 @@ func ValidateJwt(next func(w http.ResponseWriter, r *http.Request)) http.Handler
 			w.Write([]byte("Not authorized"))
 		}
 	})
+}
+
+func ExtractUserId(tokenStr string) (int, error) {
+	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
+		return SECRET, nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userId := claims["userId"].(int)
+		return userId, nil
+	} else {
+		return 0, errors.New("Invalid token")
+	}
 }
 
 func CreateOtp() string {
