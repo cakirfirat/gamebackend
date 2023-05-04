@@ -14,8 +14,9 @@ func GenesisHandler(w http.ResponseWriter, r *http.Request) {
 	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
 	CheckError(errorDecoder)
 	locale := r.Header.Get("Accept-Language")
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
+
+	user.CreatedAt = time.Now().String()
+	user.UpdatedAt = time.Now().String()
 
 	if phone, ok := jsonData["phoneNumber"].(string); ok {
 
@@ -160,7 +161,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	responseJson, err := json.Marshal(response)
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusOK)
 	w.Write(responseJson)
 	CheckError(err)
 	return
@@ -169,21 +170,36 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 
 func PatientHandler(w http.ResponseWriter, r *http.Request) {
 
-	// var user User
 	var jsonData map[string]interface{}
 	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
 	CheckError(errorDecoder)
+	token := r.Header.Get("Authorization")
 
-	phoneNumber, err := GetJSONField(jsonData, "phoneNumber")
+	firstName, err := GetJSONField(jsonData, "firstName")
+	lastName, err := GetJSONField(jsonData, "lastName")
+	dateOfBirth, err := GetJSONField(jsonData, "dateOfBirth")
+	gender, err := GetJSONField(jsonData, "gender")
 	identityNumber, err := GetJSONField(jsonData, "identityNumber")
 	passportNumber, err := GetJSONField(jsonData, "passportNumber")
-	email, err := GetJSONField(jsonData, "email")
-	password, err := GetJSONField(jsonData, "password")
+	nationalityCode, err := GetJSONField(jsonData, "nationalityCode")
+	// hasMailActivation, err := GetJSONField(jsonData, "hasMailActivation")
+	// careProviderId, err := GetJSONField(jsonData, "careProviderId")
+	// patientType, err := GetJSONField(jsonData, "patientType")
+	contactInfo, err := GetJSONFieldFromJson(jsonData, "contactInfo")
+	// patientID, err := GetJSONField(jsonContactInfo,"patientID")
+	phoneNumber, err := GetJSONField(contactInfo, "phoneNumber")
+	emailAddress, err := GetJSONField(contactInfo, "emailAddress")
+	// address, err := GetJSONField(jsonContactInfo,"address")
+	// addressLongitude, err := GetJSONField(jsonContactInfo,"addressLongitude")
+	// addressLatitude, err := GetJSONField(jsonContactInfo,"addressLatitude")
+	// relativeFullName, err := GetJSONField(jsonContactInfo,"relativeFullName")
+	// relativePhoneNumber, err := GetJSONField(jsonContactInfo,"relativePhoneNumber")
 
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Bilgiler dolu olmalıdır. "))
+		CheckError(err)
 		return
 	}
 
@@ -191,33 +207,42 @@ func PatientHandler(w http.ResponseWriter, r *http.Request) {
 		"PhoneNumber": phoneNumber,
 		"NationalId":  identityNumber,
 		"PassportId":  passportNumber,
-		"Email":       email,
-		"Password":    password,
+		"Email":       emailAddress,
+		"Name":        firstName,
+		"LastName":    lastName,
+		"BirthDate":   dateOfBirth,
+		"Gender":      gender,
+		"Nationality": nationalityCode,
+		"IsPatient":   1,
 	}
 
-	exists, id := CheckPhoneNumber(phoneNumber)
-	if !exists {
+	id, err := ExtractUserId(token)
+
+	user, err := GetUserById(id)
+
+	if user == nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Böyle bir kullanıcı mevcut değil."))
+		w.Write([]byte("Böyle bir kullanıcı bulunmamaktadır."))
+		CheckError(err)
 		return
 	}
 
-	if !UpdateUserFromPhone(phoneNumber, updateFields) {
+	if !UpdateUserFromId(id, updateFields) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Güncellenirken bir hata oluştu. "))
+		w.Write([]byte("Güncelleme hatası."))
+		CheckError(err)
 		return
 	}
-	token, err := CreateJwt(id)
 
 	response := map[string]interface{}{
-		"accessToken":  token,
-		"refreshToken": token,
+		"UserId": id,
 	}
+
 	responseJson, err := json.Marshal(response)
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusOK)
 	w.Write(responseJson)
 	CheckError(err)
 	return

@@ -107,7 +107,6 @@ func ValidateJwt(next func(w http.ResponseWriter, r *http.Request)) http.Handler
 					w.WriteHeader(http.StatusUnauthorized)
 					w.Write([]byte("Not authorized"))
 				}
-
 				if token.Valid {
 					next(w, r)
 				}
@@ -122,18 +121,30 @@ func ValidateJwt(next func(w http.ResponseWriter, r *http.Request)) http.Handler
 	})
 }
 
-func ExtractUserId(tokenStr string) (int, error) {
+func ExtractUserId(authHeader string) (string, error) {
+
+	if authHeader == "" {
+		return "", errors.New("Authorization header not present")
+	}
+
+	tokenParts := strings.Split(authHeader, " ")
+	if len(tokenParts) != 2 || strings.ToLower(tokenParts[0]) != "bearer" {
+		return "", errors.New("Invalid Authorization header format")
+	}
+
+	tokenStr := tokenParts[1]
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 		return SECRET, nil
 	})
 	if err != nil {
-		return 0, err
+		return "", err
 	}
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		userId := claims["userId"].(int)
+		userId := claims["userId"].(string)
 		return userId, nil
 	} else {
-		return 0, errors.New("Invalid token")
+		return "", errors.New("Invalid token")
 	}
 }
 
@@ -174,4 +185,13 @@ func GetJSONField(jsonData map[string]interface{}, fieldName string) (string, er
 		return value, nil
 	}
 	return "", fmt.Errorf("%s eksik", fieldName)
+}
+
+func GetJSONFieldFromJson(jsonData map[string]interface{}, fieldName string) (map[string]interface{}, error) {
+	if value, ok := jsonData[fieldName].(map[string]interface{}); ok {
+		return value, nil
+	}
+	return map[string]interface{}{
+		"status": false,
+	}, fmt.Errorf("%s eksik", fieldName)
 }
