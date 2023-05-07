@@ -4,30 +4,10 @@ import (
 	"database/sql"
 	"fmt"
 	. "gamebackend/helpers"
-	"log"
 	"strings"
 
 	_ "github.com/go-sql-driver/mysql"
 )
-
-const (
-	dbHost = "157.230.56.58"
-	dbPort = 3306
-	dbUser = "user"
-	dbPass = "Emc_1486374269_Emc"
-	dbName = "gamebackend"
-)
-
-var db *sql.DB
-
-func init() {
-	var err error
-	dbConnString := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", dbUser, dbPass, dbHost, dbPort, dbName)
-	db, err = sql.Open("mysql", dbConnString)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 type User struct {
 	Id                 string `json:"Id"`
@@ -186,4 +166,24 @@ func UpdateUserFromId(Id string, updateFields map[string]interface{}) bool {
 	} else {
 		return false
 	}
+}
+
+func CheckPhoneNumberAndPassword(phoneNumber, password string) (*User, error) {
+	var user User
+	err := db.QueryRow("SELECT * FROM user WHERE PhoneNumber=? AND Password=?", phoneNumber, password).Scan(&user.Id, &user.Name, &user.MiddleName, &user.LastName, &user.Email, &user.PhoneNumber, &user.Password, &user.BirthDate, &user.Gender, &user.NationalId, &user.PassportId, &user.Nationality, &user.VerifyCode, &user.IsVerify, &user.IsIdentityApproved, &user.IsEmailApproved, &user.IsTfaActive, &user.IsPatient, &user.IsDeleted, &user.PhotoUrl, &user.IsDoctor, &user.IsMainUser, &user.CreatedAt, &user.UpdatedAt)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // kullanıcı yok
+		}
+		fmt.Println(err)
+		return nil, err // diğer hatalar
+	}
+
+	if user.Id == "" {
+		return nil, nil // kullanıcı yok
+	}
+
+	return &user, nil // kullanıcı var
+
 }

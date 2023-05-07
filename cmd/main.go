@@ -17,7 +17,10 @@ func main() {
 	r.HandleFunc("/api/genesis", GenesisHandler).Methods("POST")
 	r.HandleFunc("/api/verify-code", VerifyCodeHandler).Methods("POST")
 	r.HandleFunc("/api/user", UserHandler).Methods("POST")
+	r.HandleFunc("/api/login", LoginHandler).Methods("POST")
 	r.Handle("/api/patient-user", ValidateJwt(PatientHandler)).Methods("POST")
+
+	r.Handle("/api/setgame", ValidateJwt(SetGameHandler)).Methods("POST")
 	server := &http.Server{
 		Addr:    ":8096",
 		Handler: r,

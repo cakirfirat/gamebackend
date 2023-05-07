@@ -136,7 +136,7 @@ func UserHandler(w http.ResponseWriter, r *http.Request) {
 		"NationalId":  identityNumber,
 		"PassportId":  passportNumber,
 		"Email":       email,
-		"Password":    password,
+		"Password":    Md5Hash(password),
 	}
 
 	exists, id := CheckPhoneNumber(phoneNumber)
@@ -240,6 +240,53 @@ func PatientHandler(w http.ResponseWriter, r *http.Request) {
 		"UserId": id,
 	}
 
+	responseJson, err := json.Marshal(response)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseJson)
+	CheckError(err)
+	return
+
+}
+
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
+	// var user User
+	var jsonData map[string]interface{}
+	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
+	CheckError(errorDecoder)
+
+	phoneNumber, err := GetJSONField(jsonData, "phoneNumber")
+	password, err := GetJSONField(jsonData, "password")
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Bilgiler dolu olmalıdır. "))
+		return
+	}
+
+	validateUser, err := CheckPhoneNumberAndPassword(phoneNumber, Md5Hash(password))
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Kullanıcı bilgileri yanlış. "))
+		return
+	}
+
+	if validateUser == nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Kullanıcı bulunamadı."))
+		return
+	}
+
+	token, err := CreateJwt(validateUser.Id)
+
+	response := map[string]interface{}{
+		"accessToken":  token,
+		"refreshToken": token,
+	}
 	responseJson, err := json.Marshal(response)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
