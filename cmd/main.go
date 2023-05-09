@@ -20,7 +20,10 @@ func main() {
 	r.HandleFunc("/api/login", LoginHandler).Methods("POST")
 	r.Handle("/api/patient-user", ValidateJwt(PatientHandler)).Methods("POST")
 
-	r.Handle("/api/setgame", ValidateJwt(SetGameHandler)).Methods("POST")
+	r.Handle("/api/add-game", ValidateJwt(SetGameHandler)).Methods("POST")
+	r.Handle("/api/games", ValidateJwt(GetGameHandler)).Methods("GET")
+
+	r.Handle("/api/add-score", ValidateJwt(SetScoreHandler)).Methods("POST")
 	server := &http.Server{
 		Addr:    ":8096",
 		Handler: r,
