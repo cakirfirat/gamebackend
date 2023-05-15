@@ -222,7 +222,7 @@ func PatientHandler(w http.ResponseWriter, r *http.Request) {
 
 	if user == nil {
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte("Böyle bir kullanıcı bulunmamaktadır."))
 		CheckError(err)
 		return
@@ -283,9 +283,24 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	token, err := CreateJwt(validateUser.Id)
 
+	name := validateUser.Name
+	lastName := validateUser.LastName
+	email := validateUser.Email
+	birthDate := validateUser.BirthDate
+	gender := validateUser.Gender
+
+	user := map[string]interface{}{
+		"name":      name,
+		"lastName":  lastName,
+		"email":     email,
+		"birthDate": birthDate,
+		"gender":    gender,
+	}
+
 	response := map[string]interface{}{
 		"accessToken":  token,
 		"refreshToken": token,
+		"user":         user,
 	}
 	responseJson, err := json.Marshal(response)
 	w.Header().Set("Content-Type", "application/json")
