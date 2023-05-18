@@ -26,6 +26,7 @@ import (
 func CheckError(err error) {
 	if err != nil {
 		log.Println(err.Error())
+		fmt.Println(err)
 	}
 }
 func Md5Hash(str string) string {

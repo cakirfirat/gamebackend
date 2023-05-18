@@ -68,25 +68,17 @@ func SetScoreHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func GetScoreHandler(w http.ResponseWriter, r *http.Request) {
-	var game Game
 	var jsonData map[string]interface{}
 
-	userUUID, err := GenerateUUID()
+	token := r.Header.Get("Authorization")
+
+	id, err := ExtractUserId(token)
 
 	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
 
 	CheckError(errorDecoder)
 
-	name, err := GetJSONField(jsonData, "Name")
-	detail, err := GetJSONField(jsonData, "Detail")
-	tag, err := GetJSONField(jsonData, "Tag")
-
-	game.Id = userUUID
-	game.Name = name
-	game.Detail = detail
-	game.Tag = tag
-	game.CreatedAt = time.Now().String()
-	game.UpdatedAt = time.Now().String()
+	gameId, err := GetJSONField(jsonData, "gameId")
 
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
@@ -95,22 +87,16 @@ func GetScoreHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	id, err := InsertGame(game)
+	score, err := GetScore(gameId, id)
+
 	if err != nil {
-		fmt.Println(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Oyun eklenirken bir hata oluştu."))
+		w.Write([]byte("Skor bulunmamaktadır."))
 		return
 	}
 
-	updateFields := map[string]interface{}{
-		"gameId": id,
-		"name":   game.Name,
-		"detail": game.Detail,
-	}
-
-	responseJson, err := json.Marshal(updateFields)
+	responseJson, err := json.Marshal(score)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write(responseJson)

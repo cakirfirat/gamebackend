@@ -51,6 +51,37 @@ func AssignPatient(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// func AssignGame(w http.ResponseWriter, r *http.Request) {
+func GetAssignment(w http.ResponseWriter, r *http.Request) {
+	token := r.Header.Get("Authorization")
+	id, err := ExtractUserId(token)
+	if err != nil {
+		// Hata durumunu kontrol etme
+		// ...
+	}
 
-// }
+	assignments, err := GetPatientAssignments(id)
+	if err != nil {
+		// Hata durumunu kontrol etme
+		// ...
+	}
+
+	var assignedUsers []User
+	for _, assignment := range assignments {
+		users, err := GetUserByAssignment(assignment.UserId)
+		if err != nil {
+			// Hata durumunu kontrol etme
+			// ...
+		}
+		assignedUsers = append(assignedUsers, users...)
+	}
+
+	responseJson, err := json.Marshal(assignedUsers)
+	if err != nil {
+		// Hata durumunu kontrol etme
+		// ...
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseJson)
+}

@@ -61,9 +61,43 @@ func SetGameHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func GetGameHandler(w http.ResponseWriter, r *http.Request) {
+func GetGamesHandler(w http.ResponseWriter, r *http.Request) {
 
 	games, err := GetGames()
+
+	responseJson, err := json.Marshal(games)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(responseJson)
+	CheckError(err)
+	return
+
+}
+
+func GetGamesByUser(w http.ResponseWriter, r *http.Request) {
+	var jsonData map[string]interface{}
+
+	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
+
+	id, err := GetJSONField(jsonData, "userId")
+
+	CheckError(errorDecoder)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Bilgiler dolu olmalıdır."))
+		return
+	}
+
+	games, err := GetGamesWithScoresByUserId(id)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Skor bulunmamaktadır."))
+		return
+	}
 
 	responseJson, err := json.Marshal(games)
 	w.Header().Set("Content-Type", "application/json")

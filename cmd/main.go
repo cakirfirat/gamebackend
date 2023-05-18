@@ -27,11 +27,14 @@ func main() {
 	r.Handle("/api/patient-user", ValidateJwt(PatientHandler)).Methods("POST")
 
 	r.Handle("/api/add-game", ValidateJwt(SetGameHandler)).Methods("POST")
-	r.Handle("/api/games", ValidateJwt(GetGameHandler)).Methods("GET")
+	r.Handle("/api/games", ValidateJwt(GetGamesHandler)).Methods("GET")
+	r.Handle("/api/get-user-games", ValidateJwt(GetGamesByUser)).Methods("POST")
 
 	r.Handle("/api/add-score", ValidateJwt(SetScoreHandler)).Methods("POST")
+	r.Handle("/api/get-score", ValidateJwt(GetScoreHandler)).Methods("POST")
 
 	r.Handle("/api/assign-patient", ValidateJwt(AssignPatient)).Methods("POST")
+	r.Handle("/api/assignments", ValidateJwt(GetAssignment)).Methods("GET")
 
 	server := &http.Server{
 		Addr:    ":8096",
