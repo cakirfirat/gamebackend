@@ -36,6 +36,9 @@ func main() {
 	r.Handle("/api/assign-patient", ValidateJwt(AssignPatient)).Methods("POST")
 	r.Handle("/api/assignments", ValidateJwt(GetAssignment)).Methods("GET")
 
+	/* Alakasız endpoint */
+	r.HandleFunc("/api/file-upload", FileUploadHandler).Methods("POST")
+
 	server := &http.Server{
 		Addr:    ":8096",
 		Handler: handlers.CORS(headers, methods, origins)(r),
