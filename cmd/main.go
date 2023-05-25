@@ -38,6 +38,7 @@ func main() {
 
 	/* Alakasız endpoint */
 	r.HandleFunc("/api/file-upload", FileUploadHandler).Methods("POST")
+	r.HandleFunc("/api/feedback", SetFeedbackHandler).Methods("POST")
 
 	server := &http.Server{
 		Addr:    ":8096",

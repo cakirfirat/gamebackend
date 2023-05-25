@@ -19,6 +19,13 @@ const (
 	awsBucketRegion    = "us-east-1"
 	awsBucketName      = "taxtrackingbucket"
 )
+const (
+	minioEndpoint    = "172.30.169.20:9000"
+	minioAccessKeyID = "PA18VGWXvkmfH1yZyLeQ"
+	minioSecretKey   = "bBgLYGCfciMgTeQOPFiUCl9qqHFDqgXRcYlgXdLx"
+	minioUseSSL      = false
+	minioBucketName  = "test"
+)
 
 var myBucket = "taxtrackingbucket"
 var accessKey = "AKIATFDGZ4RATBZE2MXH"
