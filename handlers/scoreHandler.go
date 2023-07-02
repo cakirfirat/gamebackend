@@ -70,15 +70,12 @@ func SetScoreHandler(w http.ResponseWriter, r *http.Request) {
 func GetScoreHandler(w http.ResponseWriter, r *http.Request) {
 	var jsonData map[string]interface{}
 
-	token := r.Header.Get("Authorization")
-
-	id, err := ExtractUserId(token)
-
 	errorDecoder := json.NewDecoder(r.Body).Decode(&jsonData)
 
 	CheckError(errorDecoder)
 
 	gameId, err := GetJSONField(jsonData, "gameId")
+	id, err := GetJSONField(jsonData, "userId")
 
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
