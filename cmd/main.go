@@ -16,8 +16,8 @@ func main() {
 
 	r := mux.NewRouter()
 
-	headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
-	methods := handlers.AllowedMethods([]string{"POST", "GET", "PUT", "DELETE"})
+	// headers := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
+	methods := handlers.AllowedMethods([]string{"*"})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	r.HandleFunc("/api/genesis", GenesisHandler).Methods("POST")
@@ -42,7 +42,7 @@ func main() {
 
 	server := &http.Server{
 		Addr:    ":8096",
-		Handler: handlers.CORS(headers, methods, origins)(r),
+		Handler: handlers.CORS(methods, origins)(r),
 	}
 	server.ListenAndServe()
 }
