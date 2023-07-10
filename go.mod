@@ -3,7 +3,7 @@ module gamebackend
 go 1.19
 
 require (
-	github.com/aws/aws-sdk-go v1.44.268
+	github.com/aws/aws-sdk-go v1.44.271
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.0
