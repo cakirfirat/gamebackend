@@ -40,6 +40,8 @@ func main() {
 	r.HandleFunc("/api/file-upload", FileUploadHandler).Methods("POST")
 	r.HandleFunc("/api/feedback", SetFeedbackHandler).Methods("POST")
 
+	r.HandleFunc("/api/testssl", Test).Methods("GET")
+
 	server := &http.Server{
 		Addr:    ":8096",
 		Handler: handlers.CORS()(r),
